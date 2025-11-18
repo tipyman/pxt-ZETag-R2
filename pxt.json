@@ -1,7 +1,9 @@
 {
     "name": "ZETag-R2",
     "description": "Makecode extention for ZETag　using UART TX/RX",
-    "dependencies": {},
+    "dependencies": {
+        "core": "*"
+    },
     "files": [
         "main.blocks",
         "main.ts",
