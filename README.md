@@ -22,3 +22,16 @@ MakeCode でこのリポジトリを編集します。
 
 * for PXT/microbit
 <script src="https://makecode.com/gh-pages-embed.js"></script><script>makeCodeRender("{{ site.makecode.home_url }}", "{{ site.github.owner_name }}/{{ site.github.repository_name }}");</script>
+
+
+# ZETag-R2 MakeCode Extension
+ZETag用のMakeCode拡張です。UART通信でデータ送受信を行います。
+
+## 使い方
+1. MakeCodeで「拡張」→「GitHubから追加」
+2. `https://github.com/<あなたのGitHubユーザー名>/pxt-ZETag-R2` を入力
+
+## 提供ブロック
+- UARTでバイナリ送信
+- UARTでバイナリ受信
+- UARTでZETagコマンド受信
