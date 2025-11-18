@@ -17,41 +17,6 @@ namespace ZETag_R2 {
     let rx_data = 0
 
     /**
-     * Binary data transmission over UART
-     * @param TX_data: 8bit data 
-    */
-    //% blockId=uart_tx_block="UART_BIN_TX %TX_data"
-    //% weight=80 blockGap=8
-    //% TX_data.min=0 TX_data.max=255 TX_data.defl=0
-    export function UART_BIN_TX(TX_data: number): void {
-        dataBuffer.setUint8(0, TX_data);
-        // Write buffer to serial port
-        serial.writeBuffer(dataBuffer)
-    }
-
-    /**
-     * Binary data reception over UART
-     * @param value: none
-     * @return value: 16bit data If return value is 256, reception time out. 
-    */
-    //% blockId=uart_rx_block="UART_BIN_RX"
-    //% weight=80 blockGap=8
-
-    // Check RX up to 256 times
-    // If data reception is OK, return reciept data, if not, retunr 0x100
-    export function UART_BIN_RX(): number {
-        l = 0
-        while (l < 256) {
-            buffer = serial.readBuffer(1)
-            if (buffer.length > 0) {
-                return buffer[0]
-            }
-            l += 1
-        }
-        return l
-    }
-
-    /**
      * ZETag command execution
      * @param TX_array : number[]
      * @param TX_array_size : number
@@ -101,6 +66,41 @@ namespace ZETag_R2 {
             }
         }
         return Query_data
+    }
+
+    /**
+     * Binary data transmission over UART
+     * @param TX_data: 8bit data 
+    */
+    //% blockId=uart_tx_block="UART_BIN_TX %TX_data"
+    //% weight=80 blockGap=8
+    //% TX_data.min=0 TX_data.max=255 TX_data.defl=0
+    export function UART_BIN_TX(TX_data: number): void {
+        dataBuffer.setUint8(0, TX_data);
+        // Write buffer to serial port
+        serial.writeBuffer(dataBuffer)
+    }
+
+    /**
+     * Binary data reception over UART
+     * @param value: none
+     * @return value: 16bit data If return value is 256, reception time out. 
+    */
+    //% blockId=uart_rx_block="UART_BIN_RX"
+    //% weight=80 blockGap=8
+
+    // Check RX up to 256 times
+    // If data reception is OK, return reciept data, if not, retunr 0x100
+    export function UART_BIN_RX(): number {
+        l = 0
+        while (l < 256) {
+            buffer = serial.readBuffer(1)
+            if (buffer.length > 0) {
+                return buffer[0]
+            }
+            l += 1
+        }
+        return l
     }
 
     let buffer: Buffer = Buffer.create(0)
