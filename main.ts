@@ -5,7 +5,7 @@
  */
 
 /**
- * ZETag block
+ * ZETag block Ver2
  */
 
 //% weight=100 color=#0fbc11 icon="\uf482" block="ZETag_R2"
@@ -25,26 +25,26 @@ namespace ZETag_R2 {
     //% TX_data.min=0 TX_data.max=255 TX_data.defl=0
     export function UART_BIN_TX(TX_data: number): void {
         dataBuffer.setUint8(0, TX_data);
-        // バッファをシリアルポートに書き込む s
+        // Write buffer to serial port
         serial.writeBuffer(dataBuffer)
     }
 
     /**
      * Binary data reception over UART
      * @param value: none
-     * @return value: 16bit data When Upper 8 bit is 1, could not receive 
+     * @return value: 16bit data If return value is 256, reception time out. 
     */
     //% blockId=uart_rx_block="UART_BIN_RX"
     //% weight=80 blockGap=8
 
-    // 256回RX確認します。
-    // データが取れれば00-FFのデータを返し、取れなければ0x100を返します。
+    // Check RX up to 256 times
+    // If data reception is OK, return reciept data, if not, retunr 0x100
     export function UART_BIN_RX(): number {
         l = 0
         while (l < 256) {
-            ZETag_buffer = serial.readBuffer(1)
+            buffer = serial.readBuffer(1)
             if (buffer.length > 0) {
-                return ZETag_buffer[0]
+                return buffer[0]
             }
             l += 1
         }
@@ -55,17 +55,17 @@ namespace ZETag_R2 {
      * ZETag command execution
      * @param TX_array : number[]
      * @param TX_array_size : number
-     * @param Query_size: numbe
+     * @param Query_size: number
      * @return array[] 
         array[0]: 0xff	Query data is ready
               1	Timeout error
               2	Size error (Query size <> Receipt size)
               3	Checksum error
     */
-    //% blockId=ZETag command execution block="ZETag command % TX_array %TX_array_size %Query_size"
+    //% blockId=ZETag_command_execution block="ZETag command % TX_array %TX_array_size %Query_size"
     //% weight=80 blockGap=8
     //% Query_size.min=5 Query_size.max=9 Query_size.defl=5
-    export function ZETag_command(TX_array: number[], TX_array_size: number, Query_size: number): array {
+    export function ZETag_command(TX_array: number[], TX_array_size: number, Query_size: number): number[] {
         Query_data = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         i = 0
         for (let index = 0; index < TX_array_size; index++) {
