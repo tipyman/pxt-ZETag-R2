@@ -76,7 +76,6 @@ namespace ZETag_R2 {
         while (i < Query_size) {
             rx_data = UART_BIN_RX()
             if (rx_data > 255) {
-                basic.showIcon(IconNames.Sad)
                 Query_data[0] = 0
                 break;
             } else {
@@ -87,19 +86,17 @@ namespace ZETag_R2 {
         if (Query_data[0] != 0) {
             if (Query_data[0] != 255 || Query_data[1] != 0) {
                 Query_data[0] = 1
-            } else {
-                if (Query_data[2] != Query_size - 3) {
+            } else if (Query_data[2] != Query_size - 3) {
                     Query_data[0] = 2
-                } else {
-                    sum = 0
-                    i = 0
-                    while (i < Query_size - 1) {
-                        sum = sum + Query_data[i]
-                        i += 1
-                    }
-                    if ((sum & 255) != Query_data[i]) {
-                        Query_data[0] = 3
-                    }
+            } else {
+                sum = 0
+                i = 0
+                while (i < Query_size - 1) {
+                    sum = sum + Query_data[i]
+                    i += 1
+                }
+                if ((sum & 255) != Query_data[i]) {
+                    Query_data[0] = 3
                 }
             }
         }
