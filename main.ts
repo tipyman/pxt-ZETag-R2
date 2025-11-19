@@ -48,18 +48,18 @@ namespace ZETag_R2 {
         return l
     }
 
-    /**
-     * ZETag command execution
-     * @param TX_array : number[]
-     * @param TX_array_size : number
-     * @param Query_size: number
-     * @return array[] 
-        array[0]: 0xff	Query data is ready
-              1	Timeout error
-              2	Size error (Query size <> Receipt size)
-              3	Checksum error
-    */
-    //% blockId=ZETag_command_execution block="ZETag command % TX_array %TX_array_size %Query_size"
+/**
+ * ZETag command execution
+ * @param TX_array : number[]
+ * @param TX_array_size : number
+ * @param Query_size: number
+ * @return array[] 
+    array[0]: 0xff	Query data is ready
+                1	Timeout error
+                2	Size error (Query size <> Receipt size)
+                3	Checksum error
+*/
+    //% blockId=ZETag_command_execution block="ZETag command %TX_array %TX_array_size %Query_size"
     //% weight=80 blockGap=8
     //% Query_size.min=5 Query_size.max=9 Query_size.defl=5
     export function ZETag_command(TX_array: number[], TX_array_size: number, Query_size: number): number[] {
