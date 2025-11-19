@@ -63,6 +63,40 @@ namespace ZETag_R2 {
         }
     }
 
+    function Receive_Uart_data(Query_size: number): number[]{
+        Query_data = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        i = 0
+        while (i < Query_size) {    // Receive data for (Query_size) times
+            rx_data = UART_BIN_RX()
+            if (rx_data > 255) {    // Timeout CheckSum
+                Query_data[0] = 0   // return (0)
+                break;
+            } else {
+                Query_data[i] = rx_data & 0xff  // store receipt data
+                i += 1
+            }
+        }
+        if (Query_data[0] != 0) {   // 0: Timeout
+            if (Query_data[0] != 255 || Query_data[1] != 0) {
+                Query_data[0] = 1   // 1: Format illegal
+            } else if (Query_data[2] != Query_size - 3) {
+                Query_data[0] = 2   // 2: Data size incorrect
+            } else {
+                CheckSum = 0
+                i = 0
+                while (i < Query_size - 1) {
+                    CheckSum += Query_data[i]
+                    i += 1
+                }
+                if ((CheckSum & 255) != Query_data[i]) {
+                    Query_data[0] = 3   // 3: Check sum error
+                }
+            }
+        }
+        return Query_data
+    }
+
+
 /**
  * ZETag command execution
  * @param TX_array : number[]
@@ -78,40 +112,12 @@ namespace ZETag_R2 {
     //% weight=80 blockGap=8
     //% Query_size.min=5 Query_size.max=9 Query_size.defl=5
     export function ZETag_command(TX_array: number[], TX_array_size: number, Query_size: number): number[] {
-        Query_data = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         i = 0
         for (let index = 0; index < TX_array_size; index++) {
             UART_BIN_TX(TX_array[i])
             i += 1
         }
-        i = 0
-        while (i < Query_size) {
-            rx_data = UART_BIN_RX()
-            if (rx_data > 255) {
-                Query_data[0] = 0
-                break;
-            } else {
-                Query_data[i] = rx_data & 0xff
-                i += 1
-            }
-        }
-        if (Query_data[0] != 0) {
-            if (Query_data[0] != 255 || Query_data[1] != 0) {
-                Query_data[0] = 1
-            } else if (Query_data[2] != Query_size - 3) {
-                Query_data[0] = 2
-            } else {
-                CheckSum = 0
-                i = 0
-                while (i < Query_size - 1) {
-                    CheckSum += Query_data[i]
-                    i += 1
-                }
-                if ((CheckSum & 255) != Query_data[i]) {
-                    Query_data[0] = 3
-                }
-            }
-        }
+        Query_data = Receive_Uart_data(Query_size)
         return Query_data
     }
 
@@ -124,6 +130,7 @@ namespace ZETag_R2 {
     export function Set_channel_spacing(CH_SPACE: number) {
         // FF 00 03 F0 64 56; 100KHz設定
         // FF+00+03+F0=1F2 -> 0xf2
+        // Query FF 00 02 F1 F2
         Send_Uart_data([
             0xff,
             0x00,
@@ -132,14 +139,17 @@ namespace ZETag_R2 {
             CH_SPACE,
             (0xf2 + ch_spacing) % 256
         ], 6)
-        basic.pause(100)
+        Query_data = Receive_Uart_data(5)   // wait 5byte UART RX
     }
 
+/**
+ * send zetag application data
+ */
     //% blockId=Send_data block="Send ZETag data %data_array %num"
     //% weight=80 blockGap=8
     export function Send_data(data_array: number[], num: number) {
         // 0xff+2+0x80=0x181 -> 0x81
-        // FF 00 02 80
+        // Query FF 00 02 80 81
         CheckSum = 0x81 + num
         Send_Uart_data([
             0xff,
@@ -155,9 +165,13 @@ namespace ZETag_R2 {
             o += 1
         }
         UART_BIN_TX(CheckSum % 256)
-        basic.pause(100)
+
+        Query_data = Receive_Uart_data(5)   // wait 5byte UART RX
     }
 
+/**
+ * set tx power
+ */
     //% blockId=TX_Power block="TX Power %TX_Power (dB)"
     //% weight=80 blockGap=8
     //% TX_Power.min=1 TX_Power.max=10 TX_Power.defl=10
@@ -165,6 +179,7 @@ namespace ZETag_R2 {
         TX_Power_data = TX_Power * 2
         // FF 00 03 41 10 53; 出力8dB設定
         // FF+00+03+41=0x143 -> 0x43
+        // Query FF 00 02 41 42
         Send_Uart_data([
             0xff,
             0x00,
@@ -173,14 +188,18 @@ namespace ZETag_R2 {
             TX_Power_data,
             (0x43 + TX_Power_data) % 256
         ], 6)
-        basic.pause(100)
+        Query_data = Receive_Uart_data(5)   // wait 5byte UART RX
     }
 
+/**
+ * set transmission frequency
+ */
     //% blockId=Set_Frequency block="Set Frequency %Frequency (Hz) %CH_num (ch) %CH_step"
     //% weight=80 blockGap=8
     //% CH_num.min=1 CH_num.max=6 CH_num.defl=2
     //% CH_step.min=1 CH_step.max=2 CH_step.defl=2
     export function Set_Frequency(Frequency: number, CH_num: number, CH_step: number) {
+        // Query FF 00 02 40 41
         o = CH_step
         if (CH_num <= 1) {
             ch_num = -1
@@ -223,6 +242,7 @@ namespace ZETag_R2 {
         CheckSum = CheckSum % 256
         Para_array[10 + ch_num] = CheckSum
         Send_Uart_data(Para_array, 11 + ch_num)
-        basic.pause(100)
+        
+        Query_data = Receive_Uart_data(5)       // wait 5byte UART RX
     }
 }
