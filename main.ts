@@ -17,7 +17,6 @@ namespace ZETag_R2 {
     let Query_data: number[] = []
     let rx_data = 0
     let Para_array: number[] = []
-    let ch_spacing = 0
     let CheckSum = 0
     let o = 0
     let TX_Power_data = 0
@@ -137,7 +136,7 @@ namespace ZETag_R2 {
             0x03,
             0xf0,
             CH_SPACE,
-            (0xf2 + ch_spacing) % 256
+            (0xf2 + CH_SPACE) % 256
         ], 6)
         Query_data = Receive_Uart_data(5)   // wait 5byte UART RX
     }
