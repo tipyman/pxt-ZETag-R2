@@ -51,7 +51,7 @@ namespace ZETag_R2 {
             }
             l += 1
         }
-        return l
+        return 0x100
     }
 
     function Send_Uart_data(data_array: number[], num: number): void {
@@ -76,7 +76,7 @@ namespace ZETag_R2 {
             }
         }
         if (Query_data[0] != 0) {   // 0: Timeout
-            if (Query_data[0] != 255 || Query_data[1] != 0) {
+            if (Query_data[0] != 255 && Query_data[1] != 0) {
                 Query_data[0] = 1   // 1: Format illegal
             } else if (Query_data[2] != Query_size - 3) {
                 Query_data[0] = 2   // 2: Data size incorrect
