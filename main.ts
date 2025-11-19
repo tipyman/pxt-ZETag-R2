@@ -13,7 +13,6 @@ namespace ZETag_R2 {
     let buffer: Buffer = Buffer.create(0)
     let dataBuffer = pins.createBuffer(1);
     let i = 0
-    let l = 0
     let o = 0
     let Query_data: number[] = []
     let rx_data = 0
@@ -43,13 +42,9 @@ namespace ZETag_R2 {
     // If data reception is OK, return reciept data, if not, retunr 0x100
     
     function UART_BIN_RX(): number {
-        l = 0
-        while (l < 256) {
-            buffer = serial.readBuffer(1)
-            if (buffer.length > 0) {
-                return buffer[0]
-            }
-            l += 1
+        buffer = serial.readBuffer(1)
+        if (buffer.length > 0) {
+            return buffer[0]
         }
         return 0x100
     }
@@ -104,11 +99,11 @@ namespace ZETag_R2 {
  * @param TX_array_size : number
  * @param Query_size: number
  * @return array[] 
-    array[0]: 0xff	Query data is ready
-                1	Timeout error
-                2	Size error (Query size <> Receipt size)
-                3   ZeTag error
-                4	Checksum error
+    array[0]: 0xff	Query data is ready,
+                1   Time out error,
+                2	Size error (Query size <> Receipt size),
+                3   ZeTag error,
+                4	Checksum error,
                 5   Query data error
 */
     //% blockId=ZETag_command_execution block="ZETag command %TX_array %TX_array_size %Query_size"
