@@ -12,13 +12,13 @@
 namespace ZETag_R2 {
     let buffer: Buffer = Buffer.create(0)
     let dataBuffer = pins.createBuffer(1);
-    let l = 0
     let i = 0
+    let l = 0
+    let o = 0
     let Query_data: number[] = []
     let rx_data = 0
     let Para_array: number[] = []
     let CheckSum = 0
-    let o = 0
     let TX_Power_data = 0
     let ch_num = 0
     let Base_frequency = 0
@@ -80,6 +80,8 @@ namespace ZETag_R2 {
                 Query_data[0] = 1   // 1: Format illegal
             } else if (Query_data[2] != Query_size - 3) {
                 Query_data[0] = 2   // 2: Data size incorrect
+            } else if (Query_data[3] == 0xff ){
+                Query_data[0] = 3   // 3: ZETag error
             } else {
                 CheckSum = 0
                 i = 0
@@ -88,7 +90,7 @@ namespace ZETag_R2 {
                     i += 1
                 }
                 if ((CheckSum & 255) != Query_data[i]) {
-                    Query_data[0] = 3   // 3: Check sum error
+                    Query_data[0] = 4   // 4: Check sum error
                 }
             }
         }
@@ -105,7 +107,9 @@ namespace ZETag_R2 {
     array[0]: 0xff	Query data is ready
                 1	Timeout error
                 2	Size error (Query size <> Receipt size)
-                3	Checksum error
+                3   ZeTag error
+                4	Checksum error
+                5   Query data error
 */
     //% blockId=ZETag_command_execution block="ZETag command %TX_array %TX_array_size %Query_size"
     //% weight=80 blockGap=8
@@ -117,6 +121,11 @@ namespace ZETag_R2 {
             i += 1
         }
         Query_data = Receive_Uart_data(Query_size)
+        if ((Query_data[3] != 0xf1) || (TX_array[3] != 0xf0)) {
+            if (Query_data[3] != TX_array[3]) {
+                Query_data[0] = 5   // 5: Query data error
+            }
+        }
         return Query_data
     }
 
