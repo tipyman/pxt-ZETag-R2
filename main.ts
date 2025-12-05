@@ -1,11 +1,14 @@
-
 /**
  * makecode ZETag module Package Release 2.1
  * By 2025 Socionext Inc. and ZETA alliance Japan
  * Written by M.Urade　2025/12/5
  */
 
-namespace ZETag_R2a{
+/**
+ * ZETag block Ver2.1
+ */
+//% weight=100 color=#0fbc11 icon="\uf482" block="ZETag_R2"
+namespace ZETag_R2a {
     let rxBuffer: Buffer = Buffer.create(0) // 変更前: buffer
     let txBuffer = pins.createBuffer(1);    // 変更前: dataBuffer
 
@@ -38,7 +41,7 @@ namespace ZETag_R2a{
     }
 
     function Receive_Uart_data(querySize: number): number[] {
-        let queryData = [0,0,0,0,0,0,0,0]
+        let queryData = [0, 0, 0, 0, 0, 0, 0, 0]
         let i = 0
         while (i < querySize) {
             let rxData = UART_BIN_RX()
@@ -73,7 +76,7 @@ namespace ZETag_R2a{
     export function ZETag_command(txArray: number[], querySize: number): number[] {
         const txArraySize = txArray.length
         for (let i = 0; i < txArraySize; i++) {
-            UART_BIN_TX(txArray[i]) 
+            UART_BIN_TX(txArray[i])
         }
         let queryData = Receive_Uart_data(querySize)
         if ((queryData[3] != 0xf1) || (txArray[3] != 0xf0)) {
@@ -84,7 +87,7 @@ namespace ZETag_R2a{
         return queryData
     }
 
-    export function Send_data(dataArray: number[]): void { 
+    export function Send_data(dataArray: number[]): void {
         const num = dataArray.length
         let checkSum = 0x81 + num
         Send_Uart_data([0xff, 0x00, num + 2, 0x80], 4)
