@@ -5,7 +5,7 @@
  * Written by M.Urade　2025/12/5
  */
 
-namespace ZETag_R2 {
+namespace ZETag_R2a{
     let rxBuffer: Buffer = Buffer.create(0) // 変更前: buffer
     let txBuffer = pins.createBuffer(1);    // 変更前: dataBuffer
 
