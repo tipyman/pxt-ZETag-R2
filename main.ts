@@ -7,16 +7,14 @@
 /**
  * ZETag block Ver2.1
  */
-//% weight=100 color=#0fbc11 icon="\uf482" block="ZETag_R2.1"
-
 namespace ZETag_R2a {
-    let rxBuffer: Buffer = Buffer.create(0) // 変更前: buffer
-    let txBuffer = pins.createBuffer(1);    // 変更前: dataBuffer
+    let rxBuffer: Buffer = Buffer.create(0)
+    let txBuffer = pins.createBuffer(1);
 
     /**
      * Binary data transmission over UART
-     * @param txByte: 8bit data
-     */
+     * @param TX_data: 8bit data
+    */
     function UART_BIN_TX(txByte: number): void {
         txBuffer.setUint8(0, txByte);
         serial.writeBuffer(txBuffer)
@@ -24,8 +22,9 @@ namespace ZETag_R2a {
 
     /**
      * Binary data reception over UART
-     * @return 16bit data. If return value is 256, reception timeout.
-     */
+     * @param value: none
+     * @return value: 16bit data If return value is 256, reception time out.
+    */
     function UART_BIN_RX(): number {
         rxBuffer = serial.readBuffer(1)
         if (rxBuffer.length > 0) {
@@ -34,7 +33,7 @@ namespace ZETag_R2a {
         return 0x100
     }
 
-    function Send_Uart_data(dataArray: number[], length: number): void { // 変更前: data_array, num
+    function Send_Uart_data(dataArray: number[], length: number): void {
         for (let i = 0; i < length; i++) {
             UART_BIN_TX(dataArray[i])
             basic.pause(5)
@@ -74,6 +73,23 @@ namespace ZETag_R2a {
         return queryData
     }
 
+    /**
+     * ZETag command execution
+     * @param TX_array : number[]
+     * @param TX_array_size : number
+     * @param Query_size: number
+     * @return queryData[]
+        queryData[0]:
+                0xff	Query data is ready,
+                   1    Time out error,
+                   2	Size error (Query size <> Receipt size),
+                   3    ZeTag error,
+                   4    Checksum error,
+                   5    Query data error
+       */
+    //% blockId=ZETag_command block="ZETag command %txArray| query size %querySize"
+    //% weight=80 blockGap=8
+    //% querySize.min=5 querySize.max=9 querySize.defl=5 
     export function ZETag_command(txArray: number[], querySize: number): number[] {
         const txArraySize = txArray.length
         for (let i = 0; i < txArraySize; i++) {
@@ -88,7 +104,14 @@ namespace ZETag_R2a {
         return queryData
     }
 
+    /**
+     * send zetag application data
+     */
+    //% blockId=Send_data block="Send ZETag data %dataArray"
+    //% weight=80 blockGap=8
     export function Send_data(dataArray: number[]): void {
+        // 0xff+2+0x80=0x181 -> 0x81
+        // Query FF 00 02 80 81
         const num = dataArray.length
         let checkSum = 0x81 + num
         Send_Uart_data([0xff, 0x00, num + 2, 0x80], 4)
@@ -101,18 +124,44 @@ namespace ZETag_R2a {
         let queryData = Receive_Uart_data(5)
     }
 
+    /**
+     * set channel spacing
+     */
+    //% blockId=set_channel_spacing block="Set channel spacing %chSpace(KHz)"
+    //% weight=80 blockGap=8
+    //% chSpace.min=100 chSpace.max=200 chSpace.defl=100
     export function Set_channel_spacing(chSpace: number): void {
+        // FF 00 03 F0 64 56; 100KHz設定
+        // FF+00+03+F0=1F2 -> 0xf2
+        // Query FF 00 02 F1 F2
         Send_Uart_data([0xff, 0x00, 0x03, 0xf0, chSpace, (0xf2 + chSpace) % 256], 6)
         let queryData = Receive_Uart_data(5)
     }
 
+    /**
+     * set tx power
+     */
+    //% blockId=TX_Power block="TX Power %txPower (dB)"
+    //% weight=80 blockGap=8
+    //% txPower.min=1 txPower.max=10 txPower.defl=10
     export function Set_TX_Power(txPower: number): void {
         let txPowerData = txPower * 2
+        // FF 00 03 41 10 53; 出力8dB設定
+        // FF+00+03+41=0x143 -> 0x43
+        // Query FF 00 02 41 42
         Send_Uart_data([0xff, 0x00, 0x03, 0x41, txPowerData, (0x43 + txPowerData) % 256], 6)
         let queryData = Receive_Uart_data(5)
     }
 
+    /**
+     * set transmission frequency
+     */
+    //% blockId=Set_Frequency block="Set Frequency %frequency (Hz) %chNum (ch) %chStep"
+    //% weight=80 blockGap=8
+    //% chNum.min=1 chNum.max=6 chNum.defl=2
+    //% chStep.min=1 chStep.max=2 chStep.defl=2
     export function Set_Frequency(frequency: number, chNum: number, chStep: number): void {
+        // Query FF 00 02 40 41
         let step = chStep
         let channelCount = chNum <= 1 ? 1 : chNum
         let baseFrequency = frequency
