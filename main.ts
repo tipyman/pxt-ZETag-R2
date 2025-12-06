@@ -7,6 +7,7 @@
 /**
  * ZETag block Ver2.1
  */
+//% weight=100 color=190 icon="\uf482" block="ZETag"
 namespace ZETag_R2a {
     let rxBuffer: Buffer = Buffer.create(0)
     let txBuffer = pins.createBuffer(1);
@@ -75,9 +76,8 @@ namespace ZETag_R2a {
 
     /**
      * ZETag command execution
-     * @param TX_array : number[]
-     * @param TX_array_size : number
-     * @param Query_size: number
+     * @param txArray : number[]
+     * @param querySize: number
      * @return queryData[]
         queryData[0]:
                 0xff	Query data is ready,
@@ -87,7 +87,7 @@ namespace ZETag_R2a {
                    4    Checksum error,
                    5    Query data error
        */
-    //% blockId=ZETag_command block="ZETag command %txArray| query size %querySize"
+    //% blockId=ZETag_command block="ZETag command %txArray %querySize"
     //% weight=80 blockGap=8
     //% querySize.min=5 querySize.max=9 querySize.defl=5 
     export function ZETag_command(txArray: number[], querySize: number): number[] {
@@ -112,7 +112,10 @@ namespace ZETag_R2a {
     export function Send_data(dataArray: number[]): void {
         // 0xff+2+0x80=0x181 -> 0x81
         // Query FF 00 02 80 81
-        const num = dataArray.length
+        let num = dataArray.length
+        if (num < 1)    return;
+        if (num > 30)   num = 30;
+        // 0xff+2+0x80=0x181 -> 0x81  FF 00 02 80 xx xx xx
         let checkSum = 0x81 + num
         Send_Uart_data([0xff, 0x00, num + 2, 0x80], 4)
         for (let i = 0; i < num; i++) {
@@ -134,6 +137,11 @@ namespace ZETag_R2a {
         // FF 00 03 F0 64 56; 100KHz設定
         // FF+00+03+F0=1F2 -> 0xf2
         // Query FF 00 02 F1 F2
+        if (chSpace <= 100) {
+            chSpace = 100
+        } else if (chSpace >= 200) {
+            chSpace = 200
+        }
         Send_Uart_data([0xff, 0x00, 0x03, 0xf0, chSpace, (0xf2 + chSpace) % 256], 6)
         let queryData = Receive_Uart_data(5)
     }
@@ -145,6 +153,9 @@ namespace ZETag_R2a {
     //% weight=80 blockGap=8
     //% txPower.min=1 txPower.max=10 txPower.defl=10
     export function Set_TX_Power(txPower: number): void {
+        if (txPower == 0) txPower = 1;
+        else if (txPower >= 10) txPower = 10;
+
         let txPowerData = txPower * 2
         // FF 00 03 41 10 53; 出力8dB設定
         // FF+00+03+41=0x143 -> 0x43
@@ -158,20 +169,30 @@ namespace ZETag_R2a {
      */
     //% blockId=Set_Frequency block="Set Frequency %frequency (Hz) %chNum (ch) %chStep"
     //% weight=80 blockGap=8
+    //% Frequency.min=470000000 Frequency.max=928000000 Frequency.defl=922080000
     //% chNum.min=1 chNum.max=6 chNum.defl=2
     //% chStep.min=1 chStep.max=2 chStep.defl=2
     export function Set_Frequency(frequency: number, chNum: number, chStep: number): void {
         // Query FF 00 02 40 41
         let step = chStep
         let channelCount = chNum <= 1 ? 1 : chNum
+        channelCount = channelCount > 6 ? 6 : channelCount
+
+        if (step == 0) step = 1;
+        else if (step >= 2) step = 2;
+
         let baseFrequency = frequency
+        if (baseFrequency < 470000000) baseFrequency = 470000000;
+        else if (baseFrequency > 928000000) baseFrequency = 928000000;
+        else if ((baseFrequency > 510000000) && (baseFrequency < 920600000)) baseFrequency = 510000000;
+
         let checkSum = 0
         let paraArray = [
             0xff, 0x00, 0x08 + channelCount, 0x40, 0x01,
-            Math.idiv(baseFrequency, 16777216),
-            Math.idiv(baseFrequency, 65536) % 256,
-            Math.idiv(baseFrequency, 256) % 256,
-            baseFrequency % 256,
+            (baseFrequency >> 24) & 0xff,
+            (baseFrequency >> 16) & 0xff,
+            (baseFrequency >> 8) & 0xff,
+            baseFrequency & 0xff,
             channelCount, 0, 0, 0, 0, 0, 0, 0
         ]
         if (channelCount >= 2) {
