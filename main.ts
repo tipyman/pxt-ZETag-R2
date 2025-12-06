@@ -7,7 +7,7 @@
 /**
  * ZETag block Ver2.1
  */
-//% weight=100 color=190 icon="\uf482" block="ZETag"
+//% weight=100 color=190 icon="\uf482" block="ZETag_R2.1"
 namespace ZETag_R2a {
     let rxBuffer: Buffer = Buffer.create(0)
     let txBuffer = pins.createBuffer(1);
