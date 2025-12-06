@@ -1,13 +1,13 @@
 /**
- * makecode ZETag module Package Release 2.1
- * By 2025 Socionext Inc. and ZETA alliance Japan
- * Written by M.Urade　2025/12/5
+ * makecode ZETag module Package Ver 2.1
+ * By 2023 Socionext Inc. and ZETA alliance Japan
+ * Written by M.Urade　2025/12/6 (Modified)
  */
 
 /**
  * ZETag block Ver2.1
  */
-//% weight=100 color=#32CD32 icon="\uf482" block="ZETag_R2.1"
+//% weight=100 color=190 icon="\uf482" block="ZETag R2.1"
 namespace ZETag_R2a {
     let rxBuffer: Buffer = Buffer.create(0)
     let txBuffer = pins.createBuffer(1);
@@ -43,15 +43,15 @@ namespace ZETag_R2a {
 
     function Receive_Uart_data(querySize: number): number[] {
         let queryData = [0, 0, 0, 0, 0, 0, 0, 0]
-        let i = 0
-        while (i < querySize) {
+        let j = 0
+        while (j < querySize) {
             let rxData = UART_BIN_RX()
             if (rxData > 255) {
                 queryData[0] = 0
                 break
             } else {
-                queryData[i] = rxData & 0xff
-                i++
+                queryData[j] = rxData & 0xff
+                j++
             }
         }
         if (queryData[0] != 0) {
@@ -63,8 +63,8 @@ namespace ZETag_R2a {
                 queryData[0] = 3
             } else {
                 let checkSum = 0
-                for (let j = 0; j < querySize - 1; j++) {
-                    checkSum += queryData[j]
+                for (let k = 0; k < querySize - 1; k++) {
+                    checkSum += queryData[k]
                 }
                 if ((checkSum & 255) != queryData[querySize - 1]) {
                     queryData[0] = 4
@@ -92,16 +92,16 @@ namespace ZETag_R2a {
     //% querySize.min=5 querySize.max=9 querySize.defl=5 
     export function ZETag_command(txArray: number[], querySize: number): number[] {
         const txArraySize = txArray.length
-        for (let i = 0; i < txArraySize; i++) {
-            UART_BIN_TX(txArray[i])
+        for (let l = 0; l < txArraySize; l++) {
+            UART_BIN_TX(txArray[l])
         }
-        let queryData = Receive_Uart_data(querySize)
-        if ((queryData[3] != 0xf1) || (txArray[3] != 0xf0)) {
-            if (queryData[3] != txArray[3]) {
-                queryData[0] = 5
+        let queryData2 = Receive_Uart_data(querySize)
+        if ((queryData2[3] != 0xf1) || (txArray[3] != 0xf0)) {
+            if (queryData2[3] != txArray[3]) {
+                queryData2[0] = 5
             }
         }
-        return queryData
+        return queryData2
     }
 
     /**
@@ -116,15 +116,15 @@ namespace ZETag_R2a {
         if (num < 1)    return;
         if (num > 30)   num = 30;
         // 0xff+2+0x80=0x181 -> 0x81  FF 00 02 80 xx xx xx
-        let checkSum = 0x81 + num
+        let checkSum2 = 0x81 + num
         Send_Uart_data([0xff, 0x00, num + 2, 0x80], 4)
-        for (let i = 0; i < num; i++) {
-            UART_BIN_TX(dataArray[i])
+        for (let m = 0; m < num; m++) {
+            UART_BIN_TX(dataArray[m])
             basic.pause(5)
-            checkSum += dataArray[i]
+            checkSum2 += dataArray[m]
         }
-        UART_BIN_TX(checkSum % 256)
-        let queryData = Receive_Uart_data(5)
+        UART_BIN_TX(checkSum2 % 256)
+        let queryData3 = Receive_Uart_data(5)
     }
 
     /**
@@ -143,7 +143,7 @@ namespace ZETag_R2a {
             chSpace = 200
         }
         Send_Uart_data([0xff, 0x00, 0x03, 0xf0, chSpace, (0xf2 + chSpace) % 256], 6)
-        let queryData = Receive_Uart_data(5)
+        let queryData4 = Receive_Uart_data(5)
     }
 
     /**
@@ -161,7 +161,7 @@ namespace ZETag_R2a {
         // FF+00+03+41=0x143 -> 0x43
         // Query FF 00 02 41 42
         Send_Uart_data([0xff, 0x00, 0x03, 0x41, txPowerData, (0x43 + txPowerData) % 256], 6)
-        let queryData = Receive_Uart_data(5)
+        let queryData5 = Receive_Uart_data(5)
     }
 
     /**
@@ -186,7 +186,7 @@ namespace ZETag_R2a {
         else if (baseFrequency > 928000000) baseFrequency = 928000000;
         else if ((baseFrequency > 510000000) && (baseFrequency < 920600000)) baseFrequency = 510000000;
 
-        let checkSum = 0
+        let checkSum3 = 0
         let paraArray = [
             0xff, 0x00, 0x08 + channelCount, 0x40, 0x01,
             (baseFrequency >> 24) & 0xff,
@@ -196,18 +196,18 @@ namespace ZETag_R2a {
             channelCount, 0, 0, 0, 0, 0, 0, 0
         ]
         if (channelCount >= 2) {
-            for (let i = 0; i < channelCount; i++) {
-                paraArray[10 + i] = i * step
+            for (let n = 0; n < channelCount; n++) {
+                paraArray[10 + n] = n * step
             }
         } else {
             paraArray[4] = 0
         }
-        for (let i = 0; i < channelCount + 10; i++) {
-            checkSum += paraArray[i]
+        for (let o = 0; o < channelCount + 10; o++) {
+            checkSum3 += paraArray[o]
         }
-        checkSum %= 256
-        paraArray[10 + channelCount] = checkSum
+        checkSum3 %= 256
+        paraArray[10 + channelCount] = checkSum3
         Send_Uart_data(paraArray, 11 + channelCount)
-        let queryData = Receive_Uart_data(5)
+        let queryData6 = Receive_Uart_data(5)
     }
 }
