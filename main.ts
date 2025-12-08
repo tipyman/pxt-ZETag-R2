@@ -75,7 +75,7 @@ namespace ZETag_R2a {
     }
 
     /**
-     * ZETag command execution
+     * Send ZETag command execution
      * @param txArray : number[]
      * @param querySize: number
      * @return queryData[]
@@ -87,10 +87,10 @@ namespace ZETag_R2a {
                    4    Checksum error,
                    5    Query data error
        */
-    //% blockId=ZETag_command block="ZETag command %txArray %querySize"
+    //% blockId=Send_ZETag_command block="Send ZETag command %txArray %querySize"
     //% weight=80 blockGap=8
     //% querySize.min=5 querySize.max=9 querySize.defl=5 
-    export function ZETag_command(txArray: number[], querySize: number): number[] {
+    export function SEND_ZETag_command(txArray: number[], querySize: number): number[] {
         const txArraySize = txArray.length
         for (let l = 0; l < txArraySize; l++) {
             UART_BIN_TX(txArray[l])
@@ -107,9 +107,9 @@ namespace ZETag_R2a {
     /**
      * send zetag application data
      */
-    //% blockId=Send_data block="Send ZETag data %dataArray"
+    //% blockId=Transmit_ZETag_data block="Transmit ZETag data %dataArray"
     //% weight=80 blockGap=8
-    export function Send_data(dataArray: number[]): void {
+    export function Transmit_ZETag_data(dataArray: number[]): void {
         // 0xff+2+0x80=0x181 -> 0x81
         // Query FF 00 02 80 81
         let num = dataArray.length
@@ -149,7 +149,7 @@ namespace ZETag_R2a {
     /**
      * set tx power
      */
-    //% blockId=TX_Power block="TX Power %txPower (dB)"
+    //% blockId=Set TX_Power block="Set TX Power %txPower (dB)"
     //% weight=80 blockGap=8
     //% txPower.min=1 txPower.max=10 txPower.defl=10
     export function Set_TX_Power(txPower: number): void {
