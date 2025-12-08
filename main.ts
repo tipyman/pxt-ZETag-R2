@@ -130,7 +130,7 @@ namespace ZETag_R2a {
     /**
      * set channel spacing
      */
-    //% blockId=set_channel_spacing block="Set channel spacing %chSpace(KHz)"
+    //% blockId=set_channel_spacing block="Set channel spacing %chSpace (KHz)"
     //% weight=80 blockGap=8
     //% chSpace.min=100 chSpace.max=200 chSpace.defl=100
     export function Set_channel_spacing(chSpace: number): void {
