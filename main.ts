@@ -201,6 +201,8 @@ namespace ZETag_R2a {
         checkSum %= 256
         txArray[10 + chNum] = checkSum
 
+        txArray = txArray.slice(0, 11 + chNum); //omit redandant data
+        
         const response = Send_ZETag_command(txArray)
     }
 }
