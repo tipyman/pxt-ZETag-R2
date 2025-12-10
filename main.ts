@@ -169,39 +169,37 @@ namespace ZETag_R2a {
     //% chStep.min=1 chStep.max=2 chStep.defl=2
     export function Set_Frequency(frequency: number, chNum: number, chStep: number): void {
         // Query FF 00 02 40 41
-        let step = chStep
-        let channelCount = chNum <= 1 ? -1 : chNum
-        channelCount = channelCount > 6 ? 6 : channelCount
+        if (chNum <= 1) chNum = -1;
+        else if (chNum >= 6) chNum = 6;
 
-        if (step == 0) step = 1;
-        else if (step >= 2) step = 2;
+        if (chStep == 0) chStep = 1;
+        else if (chStep >= 2) chStep = 2;
 
-        let baseFrequency = frequency
-        if (baseFrequency < 470000000) baseFrequency = 470000000;
-        else if (baseFrequency > 928000000) baseFrequency = 928000000;
-        else if ((baseFrequency > 510000000) && (baseFrequency < 920600000)) baseFrequency = 510000000;
+        if (frequency < 470000000) frequency = 470000000;
+        else if (frequency > 928000000) frequency = 928000000;
+        else if ((frequency > 510000000) && (frequency < 920600000)) frequency = 510000000;
 
-        let checkSum = 0
         let txArray = [
-            0xff, 0x00, 0x08 + channelCount, 0x40, 0x01,
-            (baseFrequency >> 24) & 0xff,
-            (baseFrequency >> 16) & 0xff,
-            (baseFrequency >> 8) & 0xff,
-            baseFrequency & 0xff,
-            channelCount, 0, 0, 0, 0, 0, 0, 0
+            0xff, 0x00, 0x08 + chNum, 0x40, 0x01,
+            (frequency >> 24) & 0xff,
+            (frequency >> 16) & 0xff,
+            (frequency >> 8) & 0xff,
+            frequency & 0xff,
+            chNum, 0, 0, 0, 0, 0, 0, 0
         ]
-        if (channelCount >= 2) {
-            for (let n = 0; n < channelCount; n++) {
-                txArray[10 + n] = n * step
+        if (chNum >= 2) {
+            for (let n = 0; n < chNum; n++) {
+                txArray[10 + n] = n * chStep
             }
         } else {
             txArray[4] = 0
         }
-        for (let o = 0; o < channelCount + 10; o++) {
+        let checkSum = 0
+        for (let o = 0; o < chNum + 10; o++) {
             checkSum += txArray[o]
         }
         checkSum %= 256
-        txArray[10 + channelCount] = checkSum
+        txArray[10 + chNum] = checkSum
 
         const response = Send_ZETag_command(txArray)
     }
