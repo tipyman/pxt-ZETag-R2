@@ -26,55 +26,45 @@ namespace ZETag_R2a {
      * @return value: 16bit data If return value is 256, reception time out.
     */
     function UART_BIN_RX(): number {
-        const rxBuffer = serial.readBuffer(1)
-        if (rxBuffer.length > 0) {
+        const rxBuffer = serial.readBuffer(1)   // Bloking function (wait till receipt)
+        if (rxBuffer.length > 0) {              // When receive data, alway length > 0
             return rxBuffer[0]
         }
-        return 0x100
-    }
-
-    function Send_Uart_data(dataArray: number[], length: number): void {
-        for (let i = 0; i < length; i++) {
-            UART_BIN_TX(dataArray[i])
-            basic.pause(5)
-        }
-    }
+        return 0;                               // Never come to this line.
+     }
 
     function receive_query(): number[]  {
-        const response = [0, 0, 0, 0, 0, 0, 0, 0]
+        const response = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         let timeoutCounter = 0
 
         while (true) {
             const data = UART_BIN_RX();
-            if (data === 0xff) break;
+            if (data == 0xff) break;
             timeoutCounter++;
             if (timeoutCounter > 15) return response; // Timeout
         }
 
-        if (UART_BIN_RX() == 0) {
+        if (UART_BIN_RX() == 0) {   // FF 00 を待つ
             response[0] = 0xff;
             response[1] = 0x0;
-            const length = UART_BIN_RX();
+            let length = UART_BIN_RX();
+            if (length > 6) length = 6;
             response[2] = length;
-
-            for (let i = 0; i < length; i++) {
-                response[3 + i] = UART_BIN_RX();
+            let sum = 0xff+ 0x00 + length
+            for (let i = 0; i < length - 1; i++) {
+                const d = UART_BIN_RX() & 0xff;
+                response[3 + i] = d;
+                sum += d;
             }
-        }
-
-        if (response[0] != 255 && response[1] != 0) {
-            response[0] = 1
-        } else if (response[3] == 0xff) {
-            response[0] = 2
-        } else {
-            let checkSum = 0
-            let k = 0
-            for (k = 0; k < response[2] + 3; k++) {
-                checkSum += response[k]
-            }
-            if ((checkSum & 255) != response[k]) {
+            const crc = UART_BIN_RX() & 0xFF;
+            response[length+2] = crc;   // Store CRC data to response
+            if ((sum & 0xff) != crc) {
                 response[0] = 3
             }
+        }
+        else    response[0] = 1;
+        if (response[3] == 0xff) {
+            response[0] = 2
         }
         return response
     }
@@ -92,9 +82,8 @@ namespace ZETag_R2a {
                    4    Checksum error,
                    5    Query data error
        */
-    //% blockId=Send_ZETag_command block="Send ZETag command %txArray %querySize"
+    //% blockId=Send_ZETag_command block="Send ZETag command %txArray"
     //% weight=80 blockGap=8
-    //% querySize.min=5 querySize.max=9 querySize.defl=5 
     export function Send_ZETag_command(txArray: number[]): number[] {
         const txArraySize = txArray.length
         for (let l = 0; l < txArraySize; l++) {
@@ -213,8 +202,6 @@ namespace ZETag_R2a {
         }
         checkSum %= 256
         txArray[10 + channelCount] = checkSum
-        Send_Uart_data(txArray, 11 + channelCount)
-        let queryData6 = receive_query()
 
         const response = Send_ZETag_command(txArray)
     }
