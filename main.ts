@@ -1,3 +1,14 @@
+/**
+ * makecode ZETag module Package Release 2.1a
+ * By 2025 Socionext Inc. and ZETA alliance Japan
+ * Written by M.Urade　2025/12/11
+ */
+
+/**
+ * ZETag block Ver2.1
+ */
+//% weight=100 color=#32CD32 icon="\uf482" block="ZETag R2.1"
+
 namespace ZETag_R2a {
     const txBuffer = pins.createBuffer(1);
 
