@@ -1,13 +1,3 @@
-/**
- * makecode ZETag module Package Ver 2.1
- * By 2023 Socionext Inc. and ZETA alliance Japan
- * Written by M.Urade　2025/12/6 (Modified)
- */
-
-/**
- * ZETag block Ver2.1
- */
-//% weight=100 color=#32CD32 icon="\uf482" block="ZETag R2.1"
 namespace ZETag_R2a {
     const txBuffer = pins.createBuffer(1);
 
@@ -34,7 +24,7 @@ namespace ZETag_R2a {
      }
 
     function receive_query(): number[]  {
-        const response = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        let response = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         let timeoutCounter = 0
 
         while (true) {
@@ -58,13 +48,14 @@ namespace ZETag_R2a {
             }
             const crc = UART_BIN_RX() & 0xFF;
             response[length+2] = crc;   // Store CRC data to response
+            response = response.slice(0, length + 2); //omit redandant data
             if ((sum & 0xff) != crc) {
-                response[0] = 3
+                response = [3]
             }
         }
-        else    response[0] = 1;
+        else    response = [1];
         if (response[3] == 0xff) {
-            response[0] = 2
+            response = [2]
         }
         return response
     }
@@ -121,7 +112,7 @@ namespace ZETag_R2a {
         }
         checkSum %= 256;
         const header = [0xff, 0x00, num + 2, 0x80];
-        const response = Send_ZETag_command(header.concat(txArray).concat([checkSum]));
+        const response2 = Send_ZETag_command(header.concat(txArray).concat([checkSum]));
     }
 
     /**
@@ -139,7 +130,7 @@ namespace ZETag_R2a {
         } else if (chSpace >= 200) {
             chSpace = 200
         }
-        const response = Send_ZETag_command([0xff, 0x00, 0x03, 0xf0, chSpace, (0xf2 + chSpace) % 256]);
+        const response3 = Send_ZETag_command([0xff, 0x00, 0x03, 0xf0, chSpace, (0xf2 + chSpace) % 256]);
     }
 
     /**
@@ -156,7 +147,7 @@ namespace ZETag_R2a {
         // FF 00 03 41 10 53; 出力8dB設定
         // FF+00+03+41=0x143 -> 0x43
         // Query FF 00 02 41 42
-        const response = Send_ZETag_command([0xff, 0x00, 0x03, 0x41,txPowerData, (0x43 + txPowerData) % 256])
+        const response4 = Send_ZETag_command([0xff, 0x00, 0x03, 0x41,txPowerData, (0x43 + txPowerData) % 256])
     }
 
     /**
@@ -194,15 +185,15 @@ namespace ZETag_R2a {
         } else {
             txArray[4] = 0
         }
-        let checkSum = 0
+        let checkSum2 = 0
         for (let o = 0; o < chNum + 10; o++) {
-            checkSum += txArray[o]
+            checkSum2 += txArray[o]
         }
-        checkSum %= 256
-        txArray[10 + chNum] = checkSum
+        checkSum2 %= 256
+        txArray[10 + chNum] = checkSum2
 
         txArray = txArray.slice(0, 11 + chNum); //omit redandant data
         
-        const response = Send_ZETag_command(txArray)
+        const response5 = Send_ZETag_command(txArray)
     }
 }
