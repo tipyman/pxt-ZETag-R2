@@ -59,7 +59,7 @@ namespace ZETag_R2a {
             }
             const crc = UART_BIN_RX() & 0xFF;
             response[length+2] = crc;   // Store CRC data to response
-            response = response.slice(0, length + 2); //omit redandant data
+            response = response.slice(0, length + 3); //omit redandant data
             if ((sum & 0xff) != crc) {
                 response = [3]
             }
