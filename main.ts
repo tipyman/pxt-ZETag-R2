@@ -7,8 +7,8 @@
 /**
  * ZETag block Ver2.1
  */
-//% weight=100 color=#32CD32 icon="\uf482" block="ZETag R2.1"
 
+//% weight=100 color=#32CD32 icon="\uf482" block="ZETag R2.1"
 namespace ZETag_R2a {
     const txBuffer = pins.createBuffer(1);
 
