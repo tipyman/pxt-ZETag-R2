@@ -1,5 +1,5 @@
 {
-    "name": "ZETag-R2.1",
+    "name": "ZETag-R2.1 #2",
     "description": "Makecode extention for ZETag　using UART TX/RX",
     "dependencies": {
         "core": "*"

@@ -1,15 +1,15 @@
 /**
- * makecode ZETag module Package Release 2.1a
+ * makecode ZETag module Package Release 2.2
  * By 2025 Socionext Inc. and ZETA alliance Japan
- * Written by M.Urade　2025/12/11
+ * Written by M.Urade　2025/12/15
  */
 
 /**
- * ZETag block Ver2.1
+ * ZETag block Ver2.2
  */
 
-//% weight=100 color=#32CD32 icon="\uf482" block="ZETag R2.1"
-namespace ZETag_R2a {
+//% weight=100 color=#32CD32 icon="\uf482" block="ZETag R2.2"
+namespace ZETag_R2b {
     const txBuffer = pins.createBuffer(1);
 
     /**
@@ -85,6 +85,7 @@ namespace ZETag_R2a {
                    5    Query data error
        */
     //% blockId=Send_ZETag_command block="Send ZETag command %txArray"
+    //% subcategory="その他"
     //% weight=80 blockGap=8
     export function Send_ZETag_command(txArray: number[]): number[] {
         const txArraySize = txArray.length
