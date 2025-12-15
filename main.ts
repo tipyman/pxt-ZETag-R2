@@ -1,15 +1,15 @@
 /**
- * makecode ZETag module Package Release 2.2
+ * makecode ZETag module Package Release 2.1a
  * By 2025 Socionext Inc. and ZETA alliance Japan
- * Written by M.Urade　2025/12/15
+ * Written by M.Urade　2025/12/11
  */
 
 /**
- * ZETag block Ver2.2
+ * ZETag block Ver2.1
  */
 
-//% weight=100 color=#32CD32 icon="\uf482" block="ZETag R2.2"
-namespace ZETag_R2b {
+//% weight=100 color=#32CD32 icon="\uf482" block="ZETag R2.1"
+namespace ZETag_R2a {
     const txBuffer = pins.createBuffer(1);
 
     /**
@@ -32,9 +32,9 @@ namespace ZETag_R2b {
             return rxBuffer[0]
         }
         return 0;                               // Never come to this line.
-     }
+    }
 
-    function receive_query(): number[]  {
+    function receive_query(): number[] {
         let response = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         let timeoutCounter = 0
 
@@ -51,20 +51,20 @@ namespace ZETag_R2b {
             let length = UART_BIN_RX();
             if (length > 6) length = 6;
             response[2] = length;
-            let sum = 0xff+ 0x00 + length
+            let sum = 0xff + 0x00 + length
             for (let i = 0; i < length - 1; i++) {
                 const d = UART_BIN_RX() & 0xff;
                 response[3 + i] = d;
                 sum += d;
             }
             const crc = UART_BIN_RX() & 0xFF;
-            response[length+2] = crc;   // Store CRC data to response
-            response = response.slice(0, length + 3); //omit redandant data
+            response[length + 2] = crc;   // Store CRC data to response
+            response = response.slice(0, length + 2); //omit redandant data
             if ((sum & 0xff) != crc) {
                 response = [3]
             }
         }
-        else    response = [1];
+        else response = [1];
         if (response[3] == 0xff) {
             response = [2]
         }
@@ -85,7 +85,6 @@ namespace ZETag_R2b {
                    5    Query data error
        */
     //% blockId=Send_ZETag_command block="Send ZETag command %txArray"
-    //% subcategory="その他"
     //% weight=80 blockGap=8
     export function Send_ZETag_command(txArray: number[]): number[] {
         const txArraySize = txArray.length
@@ -99,7 +98,7 @@ namespace ZETag_R2b {
             queryData[0] = 4
         }
         if (queryData[3] != txArray[3]) {
-            if ((queryData[3] != 0xf1) || (txArray[3] != 0xf0)){
+            if ((queryData[3] != 0xf1) || (txArray[3] != 0xf0)) {
                 queryData[0] = 4
             }
         }
@@ -115,33 +114,16 @@ namespace ZETag_R2b {
         // 0xff+2+0x80=0x181 -> 0x81
         // Query FF 00 02 80 81
         let num = txArray.length
-        if (num < 1)    return;
-        if (num > 30)   num = 30;
+        if (num < 1) return;
+        if (num > 30) num = 30;
         // 0xff+2+0x80=0x181 -> 0x81  FF 00 02 80 xx xx xx
         let checkSum = 0x81 + num
-        for (let m = 0; m < num; m++){
+        for (let m = 0; m < num; m++) {
             checkSum += txArray[m]
         }
         checkSum %= 256;
         const header = [0xff, 0x00, num + 2, 0x80];
         const response2 = Send_ZETag_command(header.concat(txArray).concat([checkSum]));
-    }
-
-    /**
-     * set tx power
-     */
-    //% blockId=Set TX_Power block="Set TX Power %txPower (dB)"
-    //% weight=80 blockGap=8
-    //% txPower.min=1 txPower.max=10 txPower.defl=10
-    export function Set_TX_Power(txPower: number): void {
-        if (txPower == 0) txPower = 1;
-        else if (txPower >= 10) txPower = 10;
-
-        let txPowerData = txPower * 2
-        // FF 00 03 41 10 53; 出力8dB設定
-        // FF+00+03+41=0x143 -> 0x43
-        // Query FF 00 02 41 42
-        const response4 = Send_ZETag_command([0xff, 0x00, 0x03, 0x41, txPowerData, (0x43 + txPowerData) % 256])
     }
 
     /**
@@ -160,6 +142,23 @@ namespace ZETag_R2b {
             chSpace = 200
         }
         const response3 = Send_ZETag_command([0xff, 0x00, 0x03, 0xf0, chSpace, (0xf2 + chSpace) % 256]);
+    }
+
+    /**
+     * set tx power
+     */
+    //% blockId=Set TX_Power block="Set TX Power %txPower (dB)"
+    //% weight=80 blockGap=8
+    //% txPower.min=1 txPower.max=10 txPower.defl=10
+    export function Set_TX_Power(txPower: number): void {
+        if (txPower == 0) txPower = 1;
+        else if (txPower >= 10) txPower = 10;
+
+        let txPowerData = txPower * 2
+        // FF 00 03 41 10 53; 出力8dB設定
+        // FF+00+03+41=0x143 -> 0x43
+        // Query FF 00 02 41 42
+        const response4 = Send_ZETag_command([0xff, 0x00, 0x03, 0x41, txPowerData, (0x43 + txPowerData) % 256])
     }
 
     /**
@@ -205,7 +204,8 @@ namespace ZETag_R2b {
         txArray[10 + chNum] = checkSum2
 
         txArray = txArray.slice(0, 11 + chNum); //omit redandant data
-        
+
         const response5 = Send_ZETag_command(txArray)
     }
 }
+
