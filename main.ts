@@ -127,6 +127,23 @@ namespace ZETag_R2a {
     }
 
     /**
+     * set tx power
+     */
+    //% blockId=Set TX_Power block="Set TX Power %txPower (dB)"
+    //% weight=80 blockGap=8
+    //% txPower.min=1 txPower.max=10 txPower.defl=10
+    export function Set_TX_Power(txPower: number): void {
+        if (txPower == 0) txPower = 1;
+        else if (txPower >= 10) txPower = 10;
+
+        let txPowerData = txPower * 2
+        // FF 00 03 41 10 53; 出力8dB設定
+        // FF+00+03+41=0x143 -> 0x43
+        // Query FF 00 02 41 42
+        const response4 = Send_ZETag_command([0xff, 0x00, 0x03, 0x41, txPowerData, (0x43 + txPowerData) % 256])
+    }
+
+    /**
      * set channel spacing
      */
     //% blockId=set_channel_spacing block="Set channel spacing %chSpace (KHz)"
@@ -142,23 +159,6 @@ namespace ZETag_R2a {
             chSpace = 200
         }
         const response3 = Send_ZETag_command([0xff, 0x00, 0x03, 0xf0, chSpace, (0xf2 + chSpace) % 256]);
-    }
-
-    /**
-     * set tx power
-     */
-    //% blockId=Set TX_Power block="Set TX Power %txPower (dB)"
-    //% weight=80 blockGap=8
-    //% txPower.min=1 txPower.max=10 txPower.defl=10
-    export function Set_TX_Power(txPower: number): void {
-        if (txPower == 0) txPower = 1;
-        else if (txPower >= 10) txPower = 10;
-
-        let txPowerData = txPower * 2
-        // FF 00 03 41 10 53; 出力8dB設定
-        // FF+00+03+41=0x143 -> 0x43
-        // Query FF 00 02 41 42
-        const response4 = Send_ZETag_command([0xff, 0x00, 0x03, 0x41, txPowerData, (0x43 + txPowerData) % 256])
     }
 
     /**
@@ -208,4 +208,3 @@ namespace ZETag_R2a {
         const response5 = Send_ZETag_command(txArray)
     }
 }
-
